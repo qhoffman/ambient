@@ -1,0 +1,166 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+
+<dom-module id="my-view1">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      .card {
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+        padding: 16px;
+        margin: 24px;
+        border-radius: 5px;
+        background-color: #fff;
+        color: #757575;
+      }
+      .cardHeader {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        align-content:center;
+      }
+      .circle {
+        display: inline-block;
+        height: 64px;
+        width: 64px;
+        border-radius: 50%;
+        background: #ddd;
+        line-height: 64px;
+        font-size: 30px;
+        color: #555;
+        text-align: center;
+      }
+      .brown {
+        background:#926239;
+        color: #FFF;
+      }
+      .pink {
+        background:#FFA7B6;
+        color: #FFF;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 16px 0;
+        color: #212121;
+      }
+    </style>
+
+    <div class="card">
+      <div class="cardHeader">
+        <div class="circle brown" on-click="playBrownNoise"></div>
+        <paper-slider min="0" max="100" value="{{brownVolume}}" disabled></paper-slider>
+      </div>
+      <h1>Brown Noise</h1>
+    </div>
+
+    <div class="card">
+      <div class="cardHeader">
+        <div class="circle pink" on-click="playPinkNoise"></div>
+        <paper-slider min="0" max="100" value="{{pinkVolume}}" disabled></paper-slider>
+      </div>
+      <h1>Pink Noise</h1>
+    </div>
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'my-view1',
+      
+      properties: {
+        brownVolume: {
+          type: Number,
+          value: 50
+        },
+        pinkVolume: {
+          type: Number,
+          value: 50
+        }
+      },
+      
+      playBrownNoise: function () {
+        console.log("PBN");
+        if (!this.brownNoiseBuffer) {
+          this.brownNoiseBuffer = null;
+          // Fix up prefixing
+          this.getAndPlaySound("media/Brownian_001_30s_200-250kbps.mp3", "brownNoise")
+        } else {
+          this.playSound(this.brownNoiseBuffer, "brownNoise");
+        }
+        if(this.playingBrownNoise) {
+          
+        }
+      },
+      playPinkNoise: function () {
+        console.log("PPN");
+        if (!this.brownNoiseBuffer) {
+          this.brownNoiseBuffer = null;
+          // Fix up prefixing
+          this.getAndPlaySound("media/PinkNoise_001_30s_200-250kbps.mp3", "pinkNoise")
+        } else {
+          this.playSound(this.brownNoiseBuffer, "pinkNoise");
+        }
+        if(this.playingBrownNoise) {
+          
+        }
+      },
+      getAndPlaySound: function(url, name) {
+        console.log("GAPS");
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        var context = new AudioContext();
+        var request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+      
+        // Decode asynchronously
+        request.onload = function() {
+          context.decodeAudioData(request.response, function(buffer) {
+            var audioBuffer = buffer;
+            this.playSound(audioBuffer, name);
+          }.bind(this), function (err) {console.log(err)});
+        }.bind(this)
+        request.send();
+      },
+      playSound: function (buffer, name) {
+        console.log("PS");
+        console.log("play", buffer);
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        var context = new AudioContext();
+        if (!this.nowPlaying) {
+          this.nowPlaying = {};
+        }
+        if (this.nowPlaying[name]) {
+          this.nowPlaying[name].stop();
+          this.nowPlaying = null;
+        }
+        else {
+          this.nowPlaying[name] = context.createBufferSource(); // creates a sound source
+          this.nowPlaying[name].loop = true;
+          this.nowPlaying[name].buffer = buffer;                    // tell the source which sound to play
+          this.nowPlaying[name].connect(context.destination);       // connect the source to the context's destination (the speakers)
+          this.nowPlaying[name].start(0);                           // play the source now
+                                                       // note: on older systems, may have to use deprecated noteOn(time);
+        }
+
+      }
+    });
+
+  </script>
+
+</dom-module>
