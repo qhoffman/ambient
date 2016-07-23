@@ -114,7 +114,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           value: false
         }
       },
-      
+      ready: function () {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.context = new AudioContext();
+      },
       playBrownNoise: function () {
         console.log("PBN");
         if (!this.brownNoiseBuffer) {
@@ -161,15 +164,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
       getAndPlaySound: function(url, name) {
         console.log("GAPS");
-        window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        var context = new AudioContext();
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.responseType = 'arraybuffer';
       
         // Decode asynchronously
         request.onload = function() {
-          context.decodeAudioData(request.response, function(buffer) {
+          this.context.decodeAudioData(request.response, function(buffer) {
             var audioBuffer = buffer;
             this.playSound(audioBuffer, name);
           }.bind(this), function (err) {console.log(err)});
@@ -179,20 +180,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       playSound: function (buffer, name) {
         console.log("PS");
         console.log("play", buffer);
-        window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        var context = new AudioContext();
         if (!this.nowPlaying) {
           this.nowPlaying = {};
         }
         if (this.nowPlaying[name]) {
           this.nowPlaying[name].stop();
-          this.nowPlaying = null;
+          this.nowPlaying[name] = null;
         }
         else {
-          this.nowPlaying[name] = context.createBufferSource(); // creates a sound source
+          this.nowPlaying[name] = this.context.createBufferSource(); // creates a sound source
           this.nowPlaying[name].loop = true;
           this.nowPlaying[name].buffer = buffer;                    // tell the source which sound to play
-          this.nowPlaying[name].connect(context.destination);       // connect the source to the context's destination (the speakers)
+          this.nowPlaying[name].connect(this.context.destination);       // connect the source to the context's destination (the speakers)
           this.nowPlaying[name].start(0);                           // play the source now
                                                        // note: on older systems, may have to use deprecated noteOn(time);
         }
