@@ -67,6 +67,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         margin: 16px 0;
         color: #212121;
       }
+      .rightContent {
+        width:calc( 100% - 90px );
+      }
+      .soundTitle {
+        padding-left:15px;
+        padding-top:15px;
+      }
+      .volumeSlider {
+        width:100%;
+      }
     </style>
 
     <div class="card">
@@ -74,9 +84,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div class="circle brown" on-click="playBrownNoise">
           <iron-icon class="playPauseIcon" icon="{{getBrownNoiseButtonIcon(playing_brown_noise)}}" ></iron-icon>
         </div>
-        <paper-slider min="0" max="100" value="{{brownVolume}}" disabled></paper-slider>
+        <div class="rightContent">
+          <span class="soundTitle">Brown Noise</span>
+          <paper-slider class="volumeSlider" min="0" max="100" value="{{brownVolume}}" disabled></paper-slider>
+        </div>
       </div>
-      <h1>Brown Noise</h1>
+      
     </div>
 
     <div class="card">
@@ -84,9 +97,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div class="circle pink" on-click="playPinkNoise">
           <iron-icon class="playPauseIcon" icon="{{getPinkNoiseButtonIcon(playing_pink_noise)}}" ></iron-icon>
         </div>
-        <paper-slider min="0" max="100" value="{{pinkVolume}}" disabled></paper-slider>
-      </div>
-      <h1>Pink Noise</h1>
+        <div class="rightContent">
+          <span class="soundTitle">Pink Noise</span>
+          <paper-slider class="volumeSlider" min="0" max="100" value="{{pinkVolume}}" disabled></paper-slider>
+        </div>
     </div>
   </template>
 
