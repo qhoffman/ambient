@@ -10,6 +10,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
 
 <dom-module id="my-view1">
 
@@ -35,7 +37,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         align-content:center;
       }
       .circle {
-        display: inline-block;
+        display: flex;
         height: 64px;
         width: 64px;
         border-radius: 50%;
@@ -43,7 +45,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         line-height: 64px;
         font-size: 30px;
         color: #555;
-        text-align: center;
+        justify-content:space-around;
+        align-items: center;
+        align-content: center;
+      }
+      .playPauseIcon {
+        color:white;
+        --iron-icon-height: 48px;
+        --iron-icon-width: 48px;
       }
       .brown {
         background:#926239;
@@ -62,7 +71,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <div class="cardHeader">
-        <div class="circle brown" on-click="playBrownNoise"></div>
+        <div class="circle brown" on-click="playBrownNoise">
+          <iron-icon class="playPauseIcon" icon="{{getBrownNoiseButtonIcon(playing_brown_noise)}}" ></iron-icon>
+        </div>
         <paper-slider min="0" max="100" value="{{brownVolume}}" disabled></paper-slider>
       </div>
       <h1>Brown Noise</h1>
@@ -70,7 +81,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <div class="cardHeader">
-        <div class="circle pink" on-click="playPinkNoise"></div>
+        <div class="circle pink" on-click="playPinkNoise">
+          <iron-icon class="playPauseIcon" icon="{{getPinkNoiseButtonIcon(playing_pink_noise)}}" ></iron-icon>
+        </div>
         <paper-slider min="0" max="100" value="{{pinkVolume}}" disabled></paper-slider>
       </div>
       <h1>Pink Noise</h1>
@@ -91,21 +104,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         pinkVolume: {
           type: Number,
           value: 50
+        },
+        playing_brown_noise: {
+          type: Boolean,
+          value: false
+        },
+        playing_pink_noise: {
+          type: Boolean,
+          value: false
         }
       },
       
       playBrownNoise: function () {
         console.log("PBN");
         if (!this.brownNoiseBuffer) {
+          
           this.brownNoiseBuffer = null;
           // Fix up prefixing
           this.getAndPlaySound("media/Brownian_001_30s_200-250kbps.mp3", "brownNoise")
         } else {
           this.playSound(this.brownNoiseBuffer, "brownNoise");
         }
-        if(this.playingBrownNoise) {
-          
+        if(this.playing_brown_noise) {
+          this.playing_brown_noise = false;
+        } else {
+          this.playing_brown_noise = true;
         }
+      },
+      getBrownNoiseButtonIcon: function (playing_brown_noise) {
+        if(playing_brown_noise) {
+          return "av:pause"
+        }
+        return "av:play-arrow"
       },
       playPinkNoise: function () {
         console.log("PPN");
@@ -116,9 +146,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         } else {
           this.playSound(this.brownNoiseBuffer, "pinkNoise");
         }
-        if(this.playingBrownNoise) {
-          
+        if(this.playing_pink_noise) {
+          this.playing_pink_noise = false;
+        } else {
+          this.playing_pink_noise = true;
         }
+      },
+      getPinkNoiseButtonIcon: function (playing_pink_noise) {
+        console.log("gpb");
+        if(playing_pink_noise) {
+          return "av:pause"
+        }
+        return "av:play-arrow"
       },
       getAndPlaySound: function(url, name) {
         console.log("GAPS");
