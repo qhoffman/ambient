@@ -9,10 +9,7 @@ module.exports = {
   runtimeCaching: [{
     urlPattern: /\/bower_components\//,
     handler: 'fastest'
-  }, {
-    urlPattern: /\/images\//,
-    handler: 'fastest'
-  }, {
+  },{
     urlPattern: /\/media\//,
     handler: 'cacheFirst',
     options: {
@@ -21,6 +18,6 @@ module.exports = {
         name: 'sounds-cache'
       }
     }
-  }]
+  }],
   navigateFallback: '/index.html'
 };
