@@ -10,6 +10,9 @@ module.exports = {
     urlPattern: /\/bower_components\//,
     handler: 'fastest'
   },{
+    urlPattern: /\/src\//,
+    handler: 'fastest'
+  },{
     urlPattern: /\/media\//,
     handler: 'cacheFirst',
     options: {
