@@ -3,7 +3,6 @@ module.exports = {
     '/index.html',
     '/manifest.json',
     '/bower_components/webcomponentsjs/webcomponents-lite.min.js',
-    '/src/my-view1.html',
     '/media/*.html'
   ],
   runtimeCaching: [{
