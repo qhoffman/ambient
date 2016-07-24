@@ -70,6 +70,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --paper-slider-knob-color: #FFA7B6;
         --paper-slider-active-color: #ffcad3;
       }
+      .white {
+        background:#000;
+        color: #FFF;
+      }
+      .whiteSlider {
+        --paper-slider-knob-color: #000;
+        --paper-slider-active-color: #444;
+      }
       h1 {
         font-size: 22px;
         margin: 16px 0;
@@ -89,6 +97,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <div class="cardHeader">
+        <div class="circle white" on-click="playWhiteNoise">
+          <iron-icon class="playPauseIcon" icon="{{getWhiteNoiseButtonIcon(playing_white_noise)}}" ></iron-icon>
+        </div>
+        <div class="rightContent">
+          <span class="soundTitle">White Noise</span>
+          <paper-slider class="volumeSlider whiteSlider" min="0" max="100" value="{{soundVolumes.whiteNoise}}"></paper-slider>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHeader">
         <div class="circle brown" on-click="playBrownNoise">
           <iron-icon class="playPauseIcon" icon="{{getBrownNoiseButtonIcon(playing_brown_noise)}}" ></iron-icon>
         </div>
@@ -97,7 +117,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-slider class="volumeSlider brownSlider" min="0" max="100" value="{{soundVolumes.brownNoise}}" ></paper-slider>
         </div>
       </div>
-      
     </div>
 
     <div class="card">
@@ -109,7 +128,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <span class="soundTitle">Pink Noise</span>
           <paper-slider class="volumeSlider pinkSlider" min="0" max="100" value="{{soundVolumes.pinkNoise}}"></paper-slider>
         </div>
+      </div>
     </div>
+    
   </template>
 
   <script>
@@ -123,7 +144,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Object,
           value: {
             brownNoise: 50,
-            pinkNoise: 50
+            pinkNoise: 50,
+            whiteNoise: 50
           }
         },
         playing_brown_noise: {
@@ -131,6 +153,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           value: false
         },
         playing_pink_noise: {
+          type: Boolean,
+          value: false
+        }
+        ,
+        playing_white_noise: {
           type: Boolean,
           value: false
         }
@@ -194,6 +221,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
         return "av:play-arrow"
       },
+      playWhiteNoise: function () {
+        console.log("PBN");
+        if (!this.whiteNoiseBuffer) {
+          
+          this.whiteNoiseBuffer = null;
+          // Fix up prefixing
+          this.getAndPlaySound("media/WhiteNoise_001_30s_200-250kbps.mp3", "whiteNoise")
+        } else {
+          this.playSound(this.whiteNoiseBuffer, "whiteNoise");
+        }
+        if(this.playing_white_noise) {
+          this.playing_white_noise = false;
+        } else {
+          this.playing_white_noise = true;
+        }
+      },
+      getWhiteNoiseButtonIcon: function (playing_white_noise) {
+        if(playing_white_noise) {
+          return "av:pause"
+        }
+        return "av:play-arrow"
+      },
       getAndPlaySound: function(url, name) {
         console.log("GAPS");
         var request = new XMLHttpRequest();
@@ -218,7 +267,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (this.nowPlaying[name]) {
           this.nowPlaying[name].stop();
           this.nowPlaying[name] = null;
-          this.gainNodes[name] = null
+          // this.gainNodes[name] = null
         }
         else {
           if (this.gainNodes == null) {
