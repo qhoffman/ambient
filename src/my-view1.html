@@ -58,9 +58,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         background:#926239;
         color: #FFF;
       }
+      .brownSlider {
+        --paper-slider-knob-color: #926239;
+        --paper-slider-active-color: #bda088;
+      }
       .pink {
         background:#FFA7B6;
         color: #FFF;
+      }
+      .pinkSlider {
+        --paper-slider-knob-color: #FFA7B6;
+        --paper-slider-active-color: #ffcad3;
       }
       h1 {
         font-size: 22px;
@@ -86,7 +94,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
         <div class="rightContent">
           <span class="soundTitle">Brown Noise</span>
-          <paper-slider class="volumeSlider" min="0" max="100" value="{{brownVolume}}" disabled></paper-slider>
+          <paper-slider class="volumeSlider brownSlider" min="0" max="100" value="{{soundVolumes.brownNoise}}" ></paper-slider>
         </div>
       </div>
       
@@ -99,7 +107,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
         <div class="rightContent">
           <span class="soundTitle">Pink Noise</span>
-          <paper-slider class="volumeSlider" min="0" max="100" value="{{pinkVolume}}" disabled></paper-slider>
+          <paper-slider class="volumeSlider pinkSlider" min="0" max="100" value="{{soundVolumes.pinkNoise}}"></paper-slider>
         </div>
     </div>
   </template>
@@ -111,13 +119,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       is: 'my-view1',
       
       properties: {
-        brownVolume: {
-          type: Number,
-          value: 50
-        },
-        pinkVolume: {
-          type: Number,
-          value: 50
+        soundVolumes: {
+          type: Object,
+          value: {
+            brownNoise: 50,
+            pinkNoise: 50
+          }
         },
         playing_brown_noise: {
           type: Boolean,
@@ -128,9 +135,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           value: false
         }
       },
+      observers: 
+        [ 
+        'volumeChanged(soundVolumes.*)'
+        ],
       ready: function () {
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         this.context = new AudioContext();
+      },
+      volumeChanged: function () {
+        if (this.gainNodes != null) {
+          for (var gainNode in this.gainNodes) {
+            this.gainNodes[gainNode].gain.value = this.soundVolumes[gainNode]/100;
+          }
+        }
       },
       playBrownNoise: function () {
         console.log("PBN");
@@ -200,12 +218,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (this.nowPlaying[name]) {
           this.nowPlaying[name].stop();
           this.nowPlaying[name] = null;
+          this.gainNodes[name] = null
         }
         else {
+          if (this.gainNodes == null) {
+            this.gainNodes = {};
+          }
+          // if (this.gainNodes[name] == null) {
+            this.gainNodes[name] = this.context.createGain();
+          // }
           this.nowPlaying[name] = this.context.createBufferSource(); // creates a sound source
           this.nowPlaying[name].loop = true;
           this.nowPlaying[name].buffer = buffer;                    // tell the source which sound to play
-          this.nowPlaying[name].connect(this.context.destination);       // connect the source to the context's destination (the speakers)
+          this.nowPlaying[name].connect(this.gainNodes[name]);
+          this.gainNodes[name].connect(this.context.destination);       // connect the source to the context's destination (the speakers)
+          this.gainNodes[name].gain.value = this.soundVolumes[name]/100;
           this.nowPlaying[name].start(0);                           // play the source now
                                                        // note: on older systems, may have to use deprecated noteOn(time);
         }
