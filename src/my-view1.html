@@ -78,6 +78,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         --paper-slider-knob-color: #000;
         --paper-slider-active-color: #444;
       }
+      .oceanClose {
+        background: #4988B3;
+        color: #FFF;
+      }
+      .oceanCloseSlider {
+        --paper-slider-knob-color: #4988B3;
+        --paper-slider-active-color: #91B7D1;
+      }
       h1 {
         font-size: 22px;
         margin: 16px 0;
@@ -131,6 +139,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
     </div>
     
+    <div class="card">
+      <div class="cardHeader">
+        <div class="circle oceanClose" on-click="playOceanCloseNoise">
+          <iron-icon class="playPauseIcon" icon="{{getOceanCloseNoiseButtonIcon(playing_oceanClose_noise)}}" ></iron-icon>
+        </div>
+        <div class="rightContent">
+          <span class="soundTitle">Ocean Shoreline</span>
+          <paper-slider class="volumeSlider oceanCloseSlider" min="0" max="100" value="{{soundVolumes.oceanCloseNoise}}"></paper-slider>
+        </div>
+      </div>
+    </div>
+    
   </template>
 
   <script>
@@ -145,7 +165,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           value: {
             brownNoise: 50,
             pinkNoise: 50,
-            whiteNoise: 50
+            whiteNoise: 50,
+            oceanCloseNoise: 50
           }
         },
         playing_brown_noise: {
@@ -155,8 +176,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         playing_pink_noise: {
           type: Boolean,
           value: false
-        }
-        ,
+        },
+        playing_oceanClose_noise: {
+          type: Boolean,
+          value: false
+        },
         playing_white_noise: {
           type: Boolean,
           value: false
@@ -217,6 +241,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       getPinkNoiseButtonIcon: function (playing_pink_noise) {
         console.log("gpb");
         if(playing_pink_noise) {
+          return "av:pause"
+        }
+        return "av:play-arrow"
+      },
+      playOceanCloseNoise: function () {
+        console.log("PPN");
+        if (!this.brownNoiseBuffer) {
+          this.brownNoiseBuffer = null;
+          // Fix up prefixing
+          this.getAndPlaySound("media/OceanClose_001_60s_200-250kbps.mp3", "oceanCloseNoise")
+        } else {
+          this.playSound(this.brownNoiseBuffer, "oceanCloseNoise");
+        }
+        if(this.playing_oceanClose_noise) {
+          this.playing_oceanClose_noise = false;
+        } else {
+          this.playing_oceanClose_noise = true;
+        }
+      },
+      getOceanCloseNoiseButtonIcon: function (playing_oceanClose_noise) {
+        console.log("gpb");
+        if(playing_oceanClose_noise) {
           return "av:pause"
         }
         return "av:play-arrow"
