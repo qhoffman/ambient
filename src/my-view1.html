@@ -102,7 +102,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         width:100%;
       }
     </style>
-
     <div class="card">
       <div class="cardHeader">
         <div class="circle white" on-click="playWhiteNoise">
@@ -184,6 +183,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         playing_white_noise: {
           type: Boolean,
           value: false
+        },
+        opusSupport: {
+          type: Boolean,
+          value: false
         }
       },
       observers: 
@@ -193,6 +196,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ready: function () {
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         this.context = new AudioContext();
+        this.checkOpusSupport();
+      },
+      checkOpusSupport: function () {
+          var request = new XMLHttpRequest();
+          request.responseType = 'arraybuffer';
+          request.open('GET', "media/Silence_001_0-5s.ogg", true);
+          request.onload = function() {
+          try {
+            this.context.decodeAudioData(request.response, function(buffer) {
+              // var audioBuffer = buffer;
+              this.opusTestGain = this.context.createGain();
+              this.opusTestSource = this.context.createBufferSource(); // creates a sound source
+              this.opusTestSource.buffer = buffer;                    // tell the source which sound to play
+              this.opusTestSource.connect(this.opusTestGain);
+              this.opusTestGain.connect(this.context.destination);       // connect the source to the context's destination (the speakers)
+              this.opusTestGain.gain.value = 0.001;
+              this.opusTestSource.start(0);                           // play the source now
+              console.log('opusSupport!')
+              this.set('opusSupport', true);
+            }.bind(this), function (err) {console.log(err)});
+          }catch (err) {
+            console.log("opus playback failed. Defaulting to mp3 support. error:", err)
+          }
+          }.bind(this); 
+          request.send();
       },
       volumeChanged: function () {
         if (this.gainNodes != null) {
@@ -202,12 +230,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       },
       playBrownNoise: function () {
-        console.log("PBN");
         if (!this.brownNoiseBuffer) {
           
           this.brownNoiseBuffer = null;
           // Fix up prefixing
-          this.getAndPlaySound("media/Brownian_001_30s_200-250kbps.mp3", "brownNoise")
+          if (this.opusSupport) {
+            this.getAndPlaySound("media/BrownNoise_001_10s_128kbps_opus.ogg", "brownNoise")
+          } else {
+            this.getAndPlaySound("media/Brownian_001_30s_200-250kbps.mp3", "brownNoise")
+          }
         } else {
           this.playSound(this.brownNoiseBuffer, "brownNoise");
         }
@@ -224,11 +255,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return "av:play-arrow"
       },
       playPinkNoise: function () {
-        console.log("PPN");
         if (!this.brownNoiseBuffer) {
           this.brownNoiseBuffer = null;
           // Fix up prefixing
-          this.getAndPlaySound("media/PinkNoise_001_30s_200-250kbps.mp3", "pinkNoise")
+          if (this.opusSupport) {
+            this.getAndPlaySound("media/PinkNoise_001_10s_128kbps_opus.ogg", "pinkNoise")
+          } else {
+            this.getAndPlaySound("media/PinkNoise_001_30s_200-250kbps.mp3", "pinkNoise")
+          }
         } else {
           this.playSound(this.brownNoiseBuffer, "pinkNoise");
         }
@@ -239,18 +273,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       },
       getPinkNoiseButtonIcon: function (playing_pink_noise) {
-        console.log("gpb");
         if(playing_pink_noise) {
           return "av:pause"
         }
         return "av:play-arrow"
       },
       playOceanCloseNoise: function () {
-        console.log("PPN");
         if (!this.brownNoiseBuffer) {
           this.brownNoiseBuffer = null;
           // Fix up prefixing
-          this.getAndPlaySound("media/OceanClose_001_60s_200-250kbps.mp3", "oceanCloseNoise")
+          if (this.opusSupport) {
+            this.getAndPlaySound("media/OceanClose_001_128kbps_opus.ogg", "oceanCloseNoise")
+          } else {
+            this.getAndPlaySound("media/OceanClose_001_60s_200-250kbps.mp3", "oceanCloseNoise")
+          }
         } else {
           this.playSound(this.brownNoiseBuffer, "oceanCloseNoise");
         }
@@ -261,19 +297,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       },
       getOceanCloseNoiseButtonIcon: function (playing_oceanClose_noise) {
-        console.log("gpb");
         if(playing_oceanClose_noise) {
           return "av:pause"
         }
         return "av:play-arrow"
       },
       playWhiteNoise: function () {
-        console.log("PBN");
         if (!this.whiteNoiseBuffer) {
           
           this.whiteNoiseBuffer = null;
           // Fix up prefixing
-          this.getAndPlaySound("media/WhiteNoise_001_30s_200-250kbps.mp3", "whiteNoise")
+          if (this.opusSupport) {
+            this.getAndPlaySound("media/WhiteNoise_001_10s_128kbps_opus.ogg", "whiteNoise")
+          } else {
+            this.getAndPlaySound("media/WhiteNoise_001_30s_200-250kbps.mp3", "whiteNoise")
+          }
         } else {
           this.playSound(this.whiteNoiseBuffer, "whiteNoise");
         }
@@ -290,7 +328,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return "av:play-arrow"
       },
       getAndPlaySound: function(url, name) {
-        console.log("GAPS");
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.responseType = 'arraybuffer';
@@ -305,8 +342,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         request.send();
       },
       playSound: function (buffer, name) {
-        console.log("PS");
-        console.log("play", buffer);
         if (!this.nowPlaying) {
           this.nowPlaying = {};
         }

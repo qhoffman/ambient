@@ -21,6 +21,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="my-icons.html">
 
+<link rel="import" href="version-check.html">
+
 <dom-module id="my-app">
 
   <template>
@@ -93,7 +95,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div title>Ambient</div>
           </app-toolbar>
         </app-header>
-
+        <version-check></version-check>
         <iron-pages role="main" selected="[[page]]" attr-for-selected="name">
           <my-view1 name="view1"></my-view1>
           <!--<my-view2 name="view2"></my-view2>-->

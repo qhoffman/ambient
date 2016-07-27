@@ -1,0 +1,170 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<dom-module id="version-check">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        padding: 0px;
+      }
+      .card {
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+        padding: 4px 0px 4px 16px;
+        margin: 8px 36px -24px 36px;
+        border-radius: 5px;
+        background-color: #111;
+        color: #ccc;
+        display: flex;
+        justify-content: space-between;
+        align-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease-in-out;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 16px 0;
+        color: #212121;
+      }
+      .dismiss {
+        background: #444;
+        color:orange;
+        padding: 4px;
+      }
+      .update {
+        background: #444;
+        color: #4988B3;
+        padding:4px
+      }
+      .rightGroup {
+      }
+    </style>
+    <iron-collapse opened="{{!upToDate}}">
+    <!--<template is="dom-if" if="{{!upToDate}}">-->
+      <div class="card" style="{{versionPromptStyle}}">
+      <span>{{updateMessage}}</span>
+      <span class="rightGroup">
+        <paper-button class="dismiss" on-tap="dismissUpdate" >dismiss</paper-button>
+        <paper-button class="update" on-tap="hardReloadPage">update</paper-button>
+      </span>
+    </div>
+    <!--</template>-->
+    </iron-collapse>
+
+
+  </template>
+  <script>
+
+    Polymer({
+
+      is: 'version-check',
+      
+      properties: {
+        currentVersion: {
+          type: String,
+          value: '0.1.0'
+        },
+        upToDate: {
+          type: Boolean,
+          value: true
+        },
+        versionPromptStyle: {
+          type: String,
+          value: 'opacity: 0'
+        }
+      },
+      ready: function () {
+        this.async(function () {
+          this.httpGet('https://ambient-6540d.firebaseio.com/ambient/versions/currentVersion.json', function (data) {
+            this.latestVersion = JSON.parse(data).version;
+            if (this.versionCompare(this.currentVersion, this.latestVersion) < 0) {
+              this.updateMessage = data.message || "New Version Available:"
+              this.upToDate = false;
+              this.async(function () {this.versionPromptStyle = 'opacity:1.0'}, 250);
+            } else {
+              // console.log("up to date");
+            };
+          }.bind(this))
+        }, 1250);
+      },
+      httpGet: function (theUrl, callback) {
+          var xmlHttp = new XMLHttpRequest();
+          xmlHttp.onreadystatechange = function() { 
+              if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                  callback(xmlHttp.responseText);
+          }
+          xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+          xmlHttp.send(null);
+      },
+      versionCompare: function (v1, v2, options) {
+        var lexicographical = options && options.lexicographical,
+            zeroExtend = options && options.zeroExtend,
+            v1parts = v1.split('.'),
+            v2parts = v2.split('.');
+    
+        function isValidPart(x) {
+            return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x);
+        }
+    
+        if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) {
+            return NaN;
+        }
+    
+        if (zeroExtend) {
+            while (v1parts.length < v2parts.length) v1parts.push("0");
+            while (v2parts.length < v1parts.length) v2parts.push("0");
+        }
+    
+        if (!lexicographical) {
+            v1parts = v1parts.map(Number);
+            v2parts = v2parts.map(Number);
+        }
+    
+        for (var i = 0; i < v1parts.length; ++i) {
+            if (v2parts.length == i) {
+                return 1;
+            }
+    
+            if (v1parts[i] == v2parts[i]) {
+                continue;
+            }
+            else if (v1parts[i] > v2parts[i]) {
+                return 1;
+            }
+            else {
+                return -1;
+            }
+        }
+    
+        if (v1parts.length != v2parts.length) {
+            return -1;
+        }
+    
+        return 0;
+    },
+    dismissUpdate: function () {
+      this.versionPromptStyle = 'opacity:0'
+      this.async(function() {this.upToDate = true}, 500);
+    },
+    hardReloadPage: function () {
+      location.reload(true)
+    },
+
+    });
+
+  </script>
+
+</dom-module>
