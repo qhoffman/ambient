@@ -1,6 +1,5 @@
 # ambient
 
-View Live at https://ambient-6540d.firebaseapp.com/ and add it to your home screen if you so desire!
+View Live at https://ambient.alaphd.com/ and add it to your home screen if you so desire!
 
-* ToDo: Fix multiple context issue
-* ToDo: Any offline functionality
+alaphd - A Lannister Always Pays His Debts
