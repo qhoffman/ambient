@@ -5,6 +5,7 @@ import { importMetaAssets } from '@web/rollup-plugin-import-meta-assets';
 import esbuild from 'rollup-plugin-esbuild';
 import { generateSW } from 'rollup-plugin-workbox';
 import path from 'path';
+import copy from 'rollup-plugin-copy'
 
 export default {
   input: 'index.html',
@@ -33,6 +34,11 @@ export default {
     }),
     /** Bundle assets references via import.meta.url */
     importMetaAssets(),
+    // copy({
+    //   targets: [
+    //     { src: 'src/assets/*', dest: 'dist/assets' },
+    //   ]
+    // }),
     /** Minify html and css tagged template literals */
     babel({
       plugins: [

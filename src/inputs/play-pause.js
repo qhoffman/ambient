@@ -11,28 +11,24 @@ export class playPause extends LitElement {
       
     }
     #playPause {
-      padding: 10px;
-      width: 150px;
-      position: relative;
-      display: grid;
       position: relative;
       transform: rotate(90deg);
       transform-origin: center;
       transition: transform 0.3s ease-out;
+      display:flex;
+      padding: var(--padding, 10px)
     }
     #playPause > * {
-      grid-area: 1/1;
+      flex-basis:50%
     }
     #playPause.paused {
-      transform: rotate(180deg);
+      transform: rotate(var(--rotate-amount, 180deg));
     }
     #pt1 {
       background: var(--color, #000);;
       transform: scaleX(-1);
-      margin-left: 25px;
     }
     .part {
-      margin-left: 75px;
       width: 50px;
       background: var(--color, #000);;
       transition: clip-path 0.3s ease-out;
@@ -90,11 +86,17 @@ export class playPause extends LitElement {
     this.removeAdd(holder, 'paused', 'played');
   }
 
+  keyUp(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      this.togglePlayPause(e);
+    }
+  }
+
   render() {
     return html`
-      <div id="playPause" @click="${e => this.togglePlayPause(e)}">
-        <div id="pt2" class="part play"></div>
+      <div id="playPause" role="button" tabindex="0" @keyup="${e => this.keyUp(e)}" @click="${e => this.togglePlayPause(e)}">
         <div id="pt1" class="part play"></div>
+        <div id="pt2" class="part play"></div>
       </div>
     `;
   }

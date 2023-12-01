@@ -1,5 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { playPause } from './inputs/play-pause.js';
+import { litPaperButton } from './inputs/lit-paper-button.js';
+import { openDB } from 'idb';
 
 class AmbientApp extends LitElement {
   static properties = {
@@ -20,6 +22,7 @@ class AmbientApp extends LitElement {
       margin: 0 auto;
       text-align: center;
       background-color: var(--ambient-app-background-color);
+      --header-height: 64px;
     }
 
     main {
@@ -29,19 +32,56 @@ class AmbientApp extends LitElement {
     h2 {
       font-weight: lighter;
       margin: 2px;
-      font-size: 1.3em;
+      font-size: 1.1em;
+      color: #757575;
     }
-
+    #header {
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      height: var(--header-height);
+      padding: 5px;
+      box-sizing: border-box;
+      background: #f8f8f8;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    #headerLogo {
+      height: calc(var(--header-height) - 10px);
+    }
+    #headerText {
+      padding-left: 10px;
+    }
+    .headerSpacer {
+      height: var(--header-height);
+    }
+    #stopFooter {
+      height: var(--header-height);
+      position: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      bottom: 0px;
+      left: 0px;
+      right: 0px;
+      z-index: 1000;
+    }
     .soundItem {
       display: flex;
       max-width: 600px;
       width: 90vw;
-      margin: 15px;
+      margin: 24px;
       background: white;
-      border-radius: 15px;
+      border-radius: 5px;
       box-sizing: border-box;
-      padding: 10px;
+      padding: 10px 15px 10px 5px;
       align-items: center;
+      box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+        0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
     }
     .rightSideGroup {
       display: flex;
@@ -50,6 +90,7 @@ class AmbientApp extends LitElement {
       flex-grow: 1;
       text-align: left;
       gap: 10px;
+      margin-left: min(5vw, 20px);
     }
   `;
 
@@ -81,9 +122,21 @@ class AmbientApp extends LitElement {
         url: 'https://firebasestorage.googleapis.com/v0/b/ambient-6540d.appspot.com/o/OceanClose_001_128kbps_opus.ogg?alt=media&token=ebbc84ea-5cbc-441f-bb2a-b95aa7db9dff',
       },
     };
+    this.initIDB();
     this.playing = {};
+    this.fetching = {};
     this.opusSupport = this.supportsOpus();
-    this.audioContext = new AudioContext();
+    this.wakeLock = null;
+  }
+
+  initIDB() {
+    openDB('ambientSounds', 1, {
+      upgrade(db) {
+        db.createObjectStore('sounds');
+      },
+    }).then(dbo => {
+      this.idb = dbo;
+    });
   }
 
   soundToggled(e) {
@@ -98,37 +151,94 @@ class AmbientApp extends LitElement {
   stopSound(key) {
     this.playing[key].source.stop();
     this.playing[key].playing = false;
+    this.updateStopButton();
   }
 
   playSound(key) {
-    this.getSound(key)
-      .then(audioData =>
-        audioData === null
-          ? this.playing[key].source.buffer
-          : this.audioContext.decodeAudioData(audioData)
-      )
-      .then(buffer => {
-        this.playing[key] = this.playing[key] || {};
-        this.playing[key].source = this.audioContext.createBufferSource();
-        this.playing[key].source.buffer = buffer;
-        this.playing[key].gainNode = this.audioContext.createGain();
-        this.playing[key].gainNode.gain.value =
-          this.shadowRoot.getElementById(`volumeSlider_${key}`).value / 100;
-        this.playing[key].gainNode.connect(this.audioContext.destination);
-        this.playing[key].source.connect(this.playing[key].gainNode);
-        this.playing[key].source.loop = true;
-        this.playing[key].playing = true;
-        this.playing[key].source.start();
-        this.playing[key].source.onended = () => {
-          // this.shadowRoot.getElementById(`playPause_${key}`).pause();
-        };
-      });
+    if (!this.audioContext) {
+      this.audioContext = new AudioContext();
+    }
+    if (!this.fetching[key]) {
+      this.fetching[key] = true;
+      this.getSound(key)
+        .then(audioData =>
+          audioData === null
+            ? this.playing[key].source.buffer
+            : this.audioContext.decodeAudioData(audioData)
+        )
+        .then(buffer => {
+          this.playing[key] = this.playing[key] || {};
+          this.playing[key].source = this.audioContext.createBufferSource();
+          this.playing[key].source.buffer = buffer;
+          this.playing[key].gainNode = this.audioContext.createGain();
+          this.playing[key].gainNode.gain.value =
+            this.shadowRoot.getElementById(`volumeSlider_${key}`).value / 100;
+          this.playing[key].gainNode.connect(this.audioContext.destination);
+          this.playing[key].source.connect(this.playing[key].gainNode);
+          this.playing[key].source.loop = true;
+          this.playing[key].playing = true;
+          this.playing[key].source.start();
+          this.fetching[key] = false;
+          this.shadowRoot.getElementById(`playPause_${key}`).play();
+          this.playing[key].source.onended = () => {
+            this.shadowRoot.getElementById(`playPause_${key}`).pause();
+          };
+          this.updateStopButton();
+        });
+    }
+  }
+  stopAll() {
+    Object.keys(this.playing).map(x => {
+      if (this.playing[x]?.playing) {
+        this.stopSound(x);
+      }
+    });
+    this.updateStopButton();
+  }
+  updateStopButton() {
+    this.anyPlaying = this.checkIfAnyPlaying();
+    this.update();
+  }
+  checkIfAnyPlaying() {
+    let anyPlaying = false;
+    Object.keys(this.playing).map(x => {
+      if (this.playing[x]?.playing) {
+        anyPlaying = true;
+      }
+    });
+    if (anyPlaying) {
+      try {
+        navigator.wakeLock.request('screen').then(wakeLock => {
+          this.wakeLock = wakeLock;
+        });
+      } catch (err) {
+        console.log('wakelock init Problem', err);
+      }
+    } else {
+      try {
+        this.wakeLock.release().then(() => {
+          this.wakeLock = null;
+        });
+      } catch (err) {
+        console.log('wakelock cancel Problem', err);
+      }
+    }
+    return anyPlaying;
   }
   getSound(key) {
     return new Promise((resolve, reject) => {
       if (this.playing[key] == null) {
-        fetch(this.sounds?.[key]?.url).then(response => {
-          resolve(response.arrayBuffer());
+        this.idb.get('sounds', key).then(data => {
+          if (data == null) {
+            fetch(this.sounds?.[key]?.url).then(response => {
+              response.arrayBuffer().then(buff => {
+                this.idb.put('sounds', buff, key);
+                resolve(buff);
+              });
+            });
+          } else {
+            resolve(data);
+          }
         });
       } else {
         resolve(null);
@@ -138,7 +248,9 @@ class AmbientApp extends LitElement {
 
   volumeChanged(e) {
     let key = e.target.id.split('_')[1];
-    this.playing[key].gainNode.gain.value = e.target.value / 100;
+    if (this.playing?.[key]?.playing === true) {
+      this.playing[key].gainNode.gain.value = e.target.value / 100;
+    }
   }
   supportsOpus() {
     // Create a dummy audio element
@@ -154,6 +266,11 @@ class AmbientApp extends LitElement {
   render() {
     return html`
       <main>
+        <div id="header">
+          <img id="headerLogo" alt="Logo" src="../assets/AmbientLogo.svg" />
+          <div id="headerText">Ambient</div>
+        </div>
+        <div class="headerSpacer"></div>
         ${Object.keys(this.sounds).map(x => {
           let sound = this.sounds[x];
           return html`
@@ -164,10 +281,13 @@ class AmbientApp extends LitElement {
                   this.soundToggled(e);
                 }}"
                 style="--color:${this.sounds[x].color}"
+                aria-labelledby="${sound.name} label"
               ></play-pause>
               <div class="rightSideGroup">
                 <div>
-                  <label for="volumeSlider_${x}"><h2>${sound.name}</h2></label>
+                  <label for="volumeSlider_${x}"
+                    ><h2 id="${sound.name} label">${sound.name}</h2></label
+                  >
                 </div>
                 <input
                   id="volumeSlider_${x}"
@@ -185,6 +305,18 @@ class AmbientApp extends LitElement {
             </div>
           `;
         })}
+        ${this.anyPlaying === true
+          ? html`<div class="headerSpacer"></div>
+              <div id="stopFooter">
+                <div style="width:auto;max-width:600px;">
+                  <lit-paper-button
+                    @click="${e => this.stopAll(e)}"
+                    style="--paper-button-default-color:#000"
+                    >STOP ALL</lit-paper-button
+                  >
+                </div>
+              </div>`
+          : ``}
       </main>
     `;
   }

@@ -12,20 +12,123 @@
           "name": "AmbientApp",
           "members": [
             {
+              "kind": "method",
+              "name": "initIDB"
+            },
+            {
+              "kind": "method",
+              "name": "soundToggled",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "stopSound",
+              "parameters": [
+                {
+                  "name": "key"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "playSound",
+              "parameters": [
+                {
+                  "name": "key"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "stopAll"
+            },
+            {
+              "kind": "method",
+              "name": "updateStopButton"
+            },
+            {
+              "kind": "method",
+              "name": "checkIfAnyPlaying"
+            },
+            {
+              "kind": "method",
+              "name": "getSound",
+              "parameters": [
+                {
+                  "name": "key"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "volumeChanged",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "supportsOpus"
+            },
+            {
               "kind": "field",
-              "name": "header",
+              "name": "sounds",
               "type": {
-                "text": "string"
+                "text": "object"
               },
-              "default": "'My app'",
+              "default": "{\n      white: {\n        name: 'White',\n        key: 'white',\n        color: '#000',\n        url: 'https://firebasestorage.googleapis.com/v0/b/ambient-6540d.appspot.com/o/WhiteNoise_001_10s_128kbps_opus.ogg?alt=media&token=05c6436f-e346-425d-aa4a-7eb71c6a7058',\n      },\n      brown: {\n        name: 'Brown',\n        key: 'brown',\n        color: '#926239',\n        url: 'https://firebasestorage.googleapis.com/v0/b/ambient-6540d.appspot.com/o/BrownNoise_001_10s_128kbps_opus.ogg?alt=media&token=36d35c5e-1368-4628-8597-65994f940d21',\n      },\n      pink: {\n        name: 'Pink',\n        key: 'pink',\n        color: '#FFA7B6',\n        url: 'https://firebasestorage.googleapis.com/v0/b/ambient-6540d.appspot.com/o/PinkNoise_001_10s_128kbps_opus.ogg?alt=media&token=d6928f72-f754-4700-bdcc-cf828a26706c',\n      },\n      oceanShoreline: {\n        name: 'Ocean Shoreline',\n        key: 'oceanShoreline',\n        color: '#4988B3',\n        url: 'https://firebasestorage.googleapis.com/v0/b/ambient-6540d.appspot.com/o/OceanClose_001_128kbps_opus.ogg?alt=media&token=ebbc84ea-5cbc-441f-bb2a-b95aa7db9dff',\n      },\n    }",
               "privacy": "public",
-              "attribute": "header"
+              "attribute": "sounds"
+            },
+            {
+              "kind": "field",
+              "name": "playing",
+              "type": {
+                "text": "object"
+              },
+              "default": "{}"
+            },
+            {
+              "kind": "field",
+              "name": "fetching",
+              "type": {
+                "text": "object"
+              },
+              "default": "{}"
+            },
+            {
+              "kind": "field",
+              "name": "opusSupport"
+            },
+            {
+              "kind": "field",
+              "name": "wakeLock",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "opusSupported",
+              "privacy": "public",
+              "attribute": "opusSupported"
             }
           ],
           "attributes": [
             {
-              "name": "header",
-              "fieldName": "header"
+              "name": "sounds",
+              "fieldName": "sounds"
+            },
+            {
+              "name": "opusSupported",
+              "fieldName": "opusSupported"
             }
           ],
           "superclass": {
@@ -43,6 +146,221 @@
           "declaration": {
             "name": "AmbientApp",
             "module": "src/ambient-app.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/inputs/lit-paper-button.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "litPaperButton",
+          "members": [
+            {
+              "kind": "method",
+              "name": "keyPressed",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "doThing",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "removeElement",
+              "parameters": [
+                {
+                  "name": "elementId"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "color",
+              "privacy": "public",
+              "attribute": "color"
+            },
+            {
+              "kind": "field",
+              "name": "border",
+              "privacy": "public",
+              "attribute": "border"
+            },
+            {
+              "kind": "field",
+              "name": "borderRadius",
+              "privacy": "public",
+              "attribute": "border-radius"
+            },
+            {
+              "kind": "field",
+              "name": "backgroundColor",
+              "privacy": "public",
+              "attribute": "background-color"
+            },
+            {
+              "kind": "field",
+              "name": "rippleColor",
+              "privacy": "public",
+              "attribute": "ripple-color"
+            },
+            {
+              "kind": "field",
+              "name": "padding",
+              "privacy": "public",
+              "attribute": "padding"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "color",
+              "fieldName": "color"
+            },
+            {
+              "name": "border",
+              "fieldName": "border"
+            },
+            {
+              "name": "border-radius",
+              "fieldName": "borderRadius"
+            },
+            {
+              "name": "background-color",
+              "fieldName": "backgroundColor"
+            },
+            {
+              "name": "ripple-color",
+              "fieldName": "rippleColor"
+            },
+            {
+              "name": "padding",
+              "fieldName": "padding"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "lit-paper-button",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "litPaperButton",
+          "declaration": {
+            "name": "litPaperButton",
+            "module": "src/inputs/lit-paper-button.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "lit-paper-button",
+          "declaration": {
+            "name": "litPaperButton",
+            "module": "src/inputs/lit-paper-button.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/inputs/play-pause.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "playPause",
+          "members": [
+            {
+              "kind": "method",
+              "name": "togglePlayPause"
+            },
+            {
+              "kind": "method",
+              "name": "removeAdd",
+              "parameters": [
+                {
+                  "name": "el"
+                },
+                {
+                  "name": "remove"
+                },
+                {
+                  "name": "add"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "play"
+            },
+            {
+              "kind": "method",
+              "name": "pause"
+            },
+            {
+              "kind": "method",
+              "name": "keyUp",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "playing",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "privacy": "public",
+              "attribute": "playing"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "playing",
+              "fieldName": "playing"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "play-pause",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "playPause",
+          "declaration": {
+            "name": "playPause",
+            "module": "src/inputs/play-pause.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "play-pause",
+          "declaration": {
+            "name": "playPause",
+            "module": "src/inputs/play-pause.js"
           }
         }
       ]
