@@ -3,6 +3,7 @@ import { LitElement, html, css } from 'lit';
 export class playPause extends LitElement {
   static properties = {
     playing: { type: Boolean },
+    label: {type:String}
   };
 
   static styles = css`
@@ -94,7 +95,7 @@ export class playPause extends LitElement {
 
   render() {
     return html`
-      <div id="playPause" role="button" tabindex="0" @keyup="${e => this.keyUp(e)}" @click="${e => this.togglePlayPause(e)}">
+      <div id="playPause" role="button" tabindex="0" @keyup="${e => this.keyUp(e)}" @click="${e => this.togglePlayPause(e)}" aria-label="${this.label}">
         <div id="pt1" class="part play"></div>
         <div id="pt2" class="part play"></div>
       </div>

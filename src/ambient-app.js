@@ -280,8 +280,8 @@ class AmbientApp extends LitElement {
                 @toggled="${e => {
                   this.soundToggled(e);
                 }}"
-                style="--color:${this.sounds[x].color}"
-                aria-labelledby="${sound.name} label"
+                style="--color:${sound.color}"
+                label="Play or Pause ${sound.name}"
               ></play-pause>
               <div class="rightSideGroup">
                 <div>
