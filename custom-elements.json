@@ -74,7 +74,7 @@
             },
             {
               "kind": "method",
-              "name": "supportsOpus"
+              "name": "setOpusSupport"
             },
             {
               "kind": "field",
@@ -104,10 +104,6 @@
             },
             {
               "kind": "field",
-              "name": "opusSupport"
-            },
-            {
-              "kind": "field",
               "name": "wakeLock",
               "type": {
                 "text": "null"
@@ -116,9 +112,9 @@
             },
             {
               "kind": "field",
-              "name": "opusSupported",
+              "name": "opusSupport",
               "privacy": "public",
-              "attribute": "opusSupported"
+              "attribute": "opusSupport"
             }
           ],
           "attributes": [
@@ -127,8 +123,8 @@
               "fieldName": "sounds"
             },
             {
-              "name": "opusSupported",
-              "fieldName": "opusSupported"
+              "name": "opusSupport",
+              "fieldName": "opusSupport"
             }
           ],
           "superclass": {
@@ -292,6 +288,7 @@
             {
               "kind": "method",
               "name": "removeAdd",
+              "static": true,
               "parameters": [
                 {
                   "name": "el"
