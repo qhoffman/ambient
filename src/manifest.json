@@ -1,8 +1,8 @@
 {
     "name": "Ambient",
     "short_name": "Ambient",
-    "theme_color": "#CCC",
-    "background_color": "#222",
+    "theme_color": "#ededed",
+    "background_color": "#ededed",
     "display": "standalone",
     "orientation": "portrait",
     "scope": "/",

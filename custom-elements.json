@@ -330,12 +330,22 @@
               "default": "false",
               "privacy": "public",
               "attribute": "playing"
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "attribute": "label"
             }
           ],
           "attributes": [
             {
               "name": "playing",
               "fieldName": "playing"
+            },
+            {
+              "name": "label",
+              "fieldName": "label"
             }
           ],
           "superclass": {

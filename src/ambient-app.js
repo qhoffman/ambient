@@ -281,7 +281,7 @@ class AmbientApp extends LitElement {
                   this.soundToggled(e);
                 }}"
                 style="--color:${sound.color}"
-                label="Play or Pause ${sound.name}"
+                label="${this.playing?.[x]?.playing ? 'Pause' : 'Play'} ${sound.name}"
               ></play-pause>
               <div class="rightSideGroup">
                 <div>
