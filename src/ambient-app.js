@@ -1,12 +1,12 @@
 import { LitElement, html, css } from 'lit';
-import { playPause } from './inputs/play-pause.js';
-import { litPaperButton } from './inputs/lit-paper-button.js';
+import './inputs/play-pause.js';
+import './inputs/lit-paper-button.js';
 import { openDB } from 'idb';
 
 class AmbientApp extends LitElement {
   static properties = {
     sounds: { type: Array },
-    opusSupported: { type: Boolean },
+    opusSupport: { type: Boolean },
   };
 
   static styles = css`
@@ -125,7 +125,7 @@ class AmbientApp extends LitElement {
     this.initIDB();
     this.playing = {};
     this.fetching = {};
-    this.opusSupport = this.supportsOpus();
+    this.setOpusSupport();
     this.wakeLock = null;
   }
 
@@ -140,7 +140,7 @@ class AmbientApp extends LitElement {
   }
 
   soundToggled(e) {
-    let id = e.detail.id.split('_')[1];
+    const id = e.detail.id.split('_')[1];
     if (this.playing?.[id]?.playing) {
       this.stopSound(id);
     } else {
@@ -187,21 +187,24 @@ class AmbientApp extends LitElement {
         });
     }
   }
+
   stopAll() {
-    Object.keys(this.playing).map(x => {
+    Object.keys(this.playing).forEach(x => {
       if (this.playing[x]?.playing) {
         this.stopSound(x);
       }
     });
     this.updateStopButton();
   }
+
   updateStopButton() {
     this.anyPlaying = this.checkIfAnyPlaying();
     this.update();
   }
+
   checkIfAnyPlaying() {
     let anyPlaying = false;
-    Object.keys(this.playing).map(x => {
+    Object.keys(this.playing).forEach(x => {
       if (this.playing[x]?.playing) {
         anyPlaying = true;
       }
@@ -212,7 +215,7 @@ class AmbientApp extends LitElement {
           this.wakeLock = wakeLock;
         });
       } catch (err) {
-        console.log('wakelock init Problem', err);
+        // Do Something with the Error
       }
     } else {
       try {
@@ -220,11 +223,12 @@ class AmbientApp extends LitElement {
           this.wakeLock = null;
         });
       } catch (err) {
-        console.log('wakelock cancel Problem', err);
+        // Do Something with the Error
       }
     }
     return anyPlaying;
   }
+
   getSound(key) {
     return new Promise((resolve, reject) => {
       if (this.playing[key] == null) {
@@ -239,7 +243,7 @@ class AmbientApp extends LitElement {
           } else {
             resolve(data);
           }
-        });
+        }).catch(err => reject(err));
       } else {
         resolve(null);
       }
@@ -247,20 +251,21 @@ class AmbientApp extends LitElement {
   }
 
   volumeChanged(e) {
-    let key = e.target.id.split('_')[1];
+    const key = e.target.id.split('_')[1];
     if (this.playing?.[key]?.playing === true) {
       this.playing[key].gainNode.gain.value = e.target.value / 100;
     }
   }
-  supportsOpus() {
+
+  setOpusSupport() {
     // Create a dummy audio element
-    var audio = document.createElement('audio');
+    const audio = document.createElement('audio');
 
     // Check if the browser supports the Opus audio codec
-    var opusSupport = audio.canPlayType('audio/ogg; codecs=opus');
+    const opusSupport = audio.canPlayType('audio/ogg; codecs=opus');
 
     // Return true if the browser supports Opus, false otherwise
-    return opusSupport === 'probably' || opusSupport === 'maybe';
+    this.opusSupport = opusSupport === 'probably' || opusSupport === 'maybe';
   }
 
   render() {
@@ -272,14 +277,14 @@ class AmbientApp extends LitElement {
         </div>
         <div class="headerSpacer"></div>
         ${Object.keys(this.sounds).map(x => {
-          let sound = this.sounds[x];
-          return html`
+      const sound = this.sounds[x];
+      return html`
             <div class="soundItem">
               <play-pause
                 id="playPause_${x}"
                 @toggled="${e => {
-                  this.soundToggled(e);
-                }}"
+          this.soundToggled(e);
+        }}"
                 style="--color:${sound.color}"
                 label="${this.playing?.[x]?.playing ? 'Pause' : 'Play'} ${sound.name}"
               ></play-pause>
@@ -298,15 +303,15 @@ class AmbientApp extends LitElement {
                   value="100"
                   label="${this.sounds[x].name} Volume"
                   @input="${e => {
-                    this.volumeChanged(e);
-                  }}"
+          this.volumeChanged(e);
+        }}"
                 />
               </div>
             </div>
           `;
-        })}
+    })}
         ${this.anyPlaying === true
-          ? html`<div class="headerSpacer"></div>
+        ? html`<div class="headerSpacer"></div>
               <div id="stopFooter">
                 <div style="width:auto;max-width:600px;">
                   <lit-paper-button
@@ -316,7 +321,7 @@ class AmbientApp extends LitElement {
                   >
                 </div>
               </div>`
-          : ``}
+        : ``}
       </main>
     `;
   }
