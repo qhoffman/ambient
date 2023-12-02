@@ -232,18 +232,21 @@ class AmbientApp extends LitElement {
   getSound(key) {
     return new Promise((resolve, reject) => {
       if (this.playing[key] == null) {
-        this.idb.get('sounds', key).then(data => {
-          if (data == null) {
-            fetch(this.sounds?.[key]?.url).then(response => {
-              response.arrayBuffer().then(buff => {
-                this.idb.put('sounds', buff, key);
-                resolve(buff);
+        this.idb
+          .get('sounds', key)
+          .then(data => {
+            if (data == null) {
+              fetch(this.sounds?.[key]?.url).then(response => {
+                response.arrayBuffer().then(buff => {
+                  this.idb.put('sounds', buff, key);
+                  resolve(buff);
+                });
               });
-            });
-          } else {
-            resolve(data);
-          }
-        }).catch(err => reject(err));
+            } else {
+              resolve(data);
+            }
+          })
+          .catch(err => reject(err));
       } else {
         resolve(null);
       }
@@ -277,16 +280,18 @@ class AmbientApp extends LitElement {
         </div>
         <div class="headerSpacer"></div>
         ${Object.keys(this.sounds).map(x => {
-      const sound = this.sounds[x];
-      return html`
+          const sound = this.sounds[x];
+          return html`
             <div class="soundItem">
               <play-pause
                 id="playPause_${x}"
                 @toggled="${e => {
-          this.soundToggled(e);
-        }}"
+                  this.soundToggled(e);
+                }}"
                 style="--color:${sound.color}"
-                label="${this.playing?.[x]?.playing ? 'Pause' : 'Play'} ${sound.name}"
+                label="${this.playing?.[x]?.playing
+                  ? 'Pause'
+                  : 'Play'} ${sound.name}"
               ></play-pause>
               <div class="rightSideGroup">
                 <div>
@@ -303,15 +308,15 @@ class AmbientApp extends LitElement {
                   value="100"
                   label="${this.sounds[x].name} Volume"
                   @input="${e => {
-          this.volumeChanged(e);
-        }}"
+                    this.volumeChanged(e);
+                  }}"
                 />
               </div>
             </div>
           `;
-    })}
+        })}
         ${this.anyPlaying === true
-        ? html`<div class="headerSpacer"></div>
+          ? html`<div class="headerSpacer"></div>
               <div id="stopFooter">
                 <div style="width:auto;max-width:600px;">
                   <lit-paper-button
@@ -321,7 +326,7 @@ class AmbientApp extends LitElement {
                   >
                 </div>
               </div>`
-        : ``}
+          : ``}
       </main>
     `;
   }

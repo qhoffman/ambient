@@ -3,35 +3,34 @@ import { LitElement, html, css } from 'lit';
 export class playPause extends LitElement {
   static properties = {
     playing: { type: Boolean },
-    label: {type:String}
+    label: { type: String },
   };
 
   static styles = css`
     :host {
       display: block;
-      
     }
     #playPause {
       position: relative;
       transform: rotate(90deg);
       transform-origin: center;
       transition: transform 0.3s ease-out;
-      display:flex;
-      padding: var(--padding, 10px)
+      display: flex;
+      padding: var(--padding, 10px);
     }
     #playPause > * {
-      flex-basis:50%
+      flex-basis: 50%;
     }
     #playPause.paused {
       transform: rotate(var(--rotate-amount, 180deg));
     }
     #pt1 {
-      background: var(--color, #000);;
+      background: var(--color, #000);
       transform: scaleX(-1);
     }
     .part {
       width: 50px;
-      background: var(--color, #000);;
+      background: var(--color, #000);
       transition: clip-path 0.3s ease-out;
       height: 88px;
     }
@@ -54,7 +53,7 @@ export class playPause extends LitElement {
     } else {
       this.pause();
     }
-    let ev = new CustomEvent('toggled', {
+    const ev = new CustomEvent('toggled', {
       bubbles: true,
       composed: true,
       detail: { id: this.id },
@@ -62,7 +61,7 @@ export class playPause extends LitElement {
     this.dispatchEvent(ev);
   }
 
-  removeAdd(el, remove, add) {
+  static removeAdd(el, remove, add) {
     el.classList.remove(remove);
     el.classList.add(add);
   }
@@ -70,21 +69,21 @@ export class playPause extends LitElement {
   play() {
     this.playing = true;
     const bl = this.shadowRoot.getElementById('pt2');
-    this.removeAdd(bl, 'play', 'pause');
+    playPause.removeAdd(bl, 'play', 'pause');
     const re = this.shadowRoot.getElementById('pt1');
-    this.removeAdd(re, 'play', 'pause');
+    playPause.removeAdd(re, 'play', 'pause');
     const holder = this.shadowRoot.getElementById('playPause');
-    this.removeAdd(holder, 'played', 'paused');
+    playPause.removeAdd(holder, 'played', 'paused');
   }
 
   pause() {
     this.playing = false;
     const bl = this.shadowRoot.getElementById('pt2');
-    this.removeAdd(bl, 'pause', 'play');
+    playPause.removeAdd(bl, 'pause', 'play');
     const re = this.shadowRoot.getElementById('pt1');
-    this.removeAdd(re, 'pause', 'play');
+    playPause.removeAdd(re, 'pause', 'play');
     const holder = this.shadowRoot.getElementById('playPause');
-    this.removeAdd(holder, 'paused', 'played');
+    playPause.removeAdd(holder, 'paused', 'played');
   }
 
   keyUp(e) {
@@ -95,7 +94,14 @@ export class playPause extends LitElement {
 
   render() {
     return html`
-      <div id="playPause" role="button" tabindex="0" @keyup="${e => this.keyUp(e)}" @click="${e => this.togglePlayPause(e)}" aria-label="${this.label}">
+      <div
+        id="playPause"
+        role="button"
+        tabindex="0"
+        @keyup="${e => this.keyUp(e)}"
+        @click="${e => this.togglePlayPause(e)}"
+        aria-label="${this.label}"
+      >
         <div id="pt1" class="part play"></div>
         <div id="pt2" class="part play"></div>
       </div>
