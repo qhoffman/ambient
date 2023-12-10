@@ -96,6 +96,7 @@ class AmbientApp extends LitElement {
 
   constructor() {
     super();
+    this.version = '2.1.0';
     this.sounds = {
       white: {
         name: 'White',
@@ -151,7 +152,30 @@ class AmbientApp extends LitElement {
   stopSound(key) {
     this.playing[key].source.stop();
     this.playing[key].playing = false;
+    clearTimeout(this.playing[key].restart);
     this.updateStopButton();
+  }
+
+  restartSound(key) {
+    this.playing[key].source.stop();
+    // this.playing[key].source.start();
+    // this.setRestart(key);
+    // this.stopSound(key);
+    this.playSound(key);
+  }
+
+  setRestart(key) {
+    this.playing[key].restart = setTimeout(() => {
+      this.restartSound(key);
+    }, 240 * 60 * 1000);
+  }
+
+  updatePlayPauseButton(key) {
+    if (this.playing[key].playing === true) {
+      this.shadowRoot.getElementById(`playPause_${key}`).play();
+    } else {
+      this.shadowRoot.getElementById(`playPause_${key}`).pause();
+    }
   }
 
   playSound(key) {
@@ -178,10 +202,11 @@ class AmbientApp extends LitElement {
           this.playing[key].source.loop = true;
           this.playing[key].playing = true;
           this.playing[key].source.start();
+          this.setRestart(key);
           this.fetching[key] = false;
-          this.shadowRoot.getElementById(`playPause_${key}`).play();
+          this.updatePlayPauseButton(key);
           this.playing[key].source.onended = () => {
-            this.shadowRoot.getElementById(`playPause_${key}`).pause();
+            this.updatePlayPauseButton(key);
           };
           this.updateStopButton();
         });
@@ -275,8 +300,18 @@ class AmbientApp extends LitElement {
     return html`
       <main>
         <div id="header">
-          <img id="headerLogo" alt="Logo" src="../assets/AmbientLogo.svg" />
-          <div id="headerText">Ambient</div>
+          <img
+            id="headerLogo"
+            alt="Logo"
+            src="../assets/AmbientLogo.svg"
+            @click="${e => {
+              this.showVersion = !!!this.showVersion;
+              this.update();
+            }}"
+          />
+          <div id="headerText">
+            Ambient${this.showVersion ? ` (${this.version})` : ``}
+          </div>
         </div>
         <div class="headerSpacer"></div>
         ${Object.keys(this.sounds).map(x => {

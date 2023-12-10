@@ -35,6 +35,33 @@
             },
             {
               "kind": "method",
+              "name": "restartSound",
+              "parameters": [
+                {
+                  "name": "key"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "setRestart",
+              "parameters": [
+                {
+                  "name": "key"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "updatePlayPauseButton",
+              "parameters": [
+                {
+                  "name": "key"
+                }
+              ]
+            },
+            {
+              "kind": "method",
               "name": "playSound",
               "parameters": [
                 {
@@ -75,6 +102,14 @@
             {
               "kind": "method",
               "name": "setOpusSupport"
+            },
+            {
+              "kind": "field",
+              "name": "version",
+              "type": {
+                "text": "string"
+              },
+              "default": "'2.1.0'"
             },
             {
               "kind": "field",
