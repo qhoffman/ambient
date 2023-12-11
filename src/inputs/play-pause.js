@@ -14,7 +14,7 @@ export class playPause extends LitElement {
       position: relative;
       transform: rotate(90deg);
       transform-origin: center;
-      transition: transform 0.3s ease-out;
+      transition: transform var(--animation-duration, 0.3s) ease-out;
       display: flex;
       padding: var(--padding, 10px);
     }
@@ -23,6 +23,17 @@ export class playPause extends LitElement {
     }
     #playPause.paused {
       transform: rotate(var(--rotate-amount, 180deg));
+    }
+    #hackground {
+      position: absolute;
+      inset: var(--padding, 10px);
+      background: var(--color, #000);
+      clip-path: polygon(0% 100%, 50% 0%, 100% 100%, 0% 100%);
+      transition-delay: var(--animation-duration, 0.3s);
+    }
+    #hackground.true {
+      opacity: 0;
+      transition-delay: 0s;
     }
     #pt1 {
       background: var(--color, #000);
@@ -34,10 +45,10 @@ export class playPause extends LitElement {
       transition: clip-path 0.3s ease-out;
       height: 88px;
     }
-    .play {
+    .false {
       clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 0% 0%);
     }
-    .pause {
+    .true {
       clip-path: polygon(20% 0%, 20% 100%, 100% 100%, 100% 0%);
     }
   `;
@@ -68,20 +79,22 @@ export class playPause extends LitElement {
 
   play() {
     this.playing = true;
-    const bl = this.shadowRoot.getElementById('pt2');
-    playPause.removeAdd(bl, 'play', 'pause');
-    const re = this.shadowRoot.getElementById('pt1');
-    playPause.removeAdd(re, 'play', 'pause');
+    this.update();
+    // const bl = this.shadowRoot.getElementById('pt2');
+    // playPause.removeAdd(bl, 'play', 'pause');
+    // const re = this.shadowRoot.getElementById('pt1');
+    // playPause.removeAdd(re, 'play', 'pause');
     const holder = this.shadowRoot.getElementById('playPause');
     playPause.removeAdd(holder, 'played', 'paused');
   }
 
   pause() {
     this.playing = false;
-    const bl = this.shadowRoot.getElementById('pt2');
-    playPause.removeAdd(bl, 'pause', 'play');
-    const re = this.shadowRoot.getElementById('pt1');
-    playPause.removeAdd(re, 'pause', 'play');
+    this.update();
+    // const bl = this.shadowRoot.getElementById('pt2');
+    // playPause.removeAdd(bl, 'pause', 'play');
+    // const re = this.shadowRoot.getElementById('pt1');
+    // playPause.removeAdd(re, 'pause', 'play');
     const holder = this.shadowRoot.getElementById('playPause');
     playPause.removeAdd(holder, 'paused', 'played');
   }
@@ -102,8 +115,9 @@ export class playPause extends LitElement {
         @click="${e => this.togglePlayPause(e)}"
         aria-label="${this.label}"
       >
-        <div id="pt1" class="part play"></div>
-        <div id="pt2" class="part play"></div>
+        <div id="hackground" class="${this.playing}"></div>
+        <div id="pt1" class="part ${this.playing}"></div>
+        <div id="pt2" class="part ${this.playing}"></div>
       </div>
     `;
   }

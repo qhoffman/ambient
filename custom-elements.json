@@ -109,7 +109,7 @@
               "type": {
                 "text": "string"
               },
-              "default": "'2.1.1'"
+              "default": "'2.1.2'"
             },
             {
               "kind": "field",

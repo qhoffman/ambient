@@ -96,7 +96,7 @@ class AmbientApp extends LitElement {
 
   constructor() {
     super();
-    this.version = '2.1.1';
+    this.version = '2.1.2';
     this.sounds = {
       white: {
         name: 'White',
