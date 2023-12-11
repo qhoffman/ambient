@@ -96,7 +96,7 @@ class AmbientApp extends LitElement {
 
   constructor() {
     super();
-    this.version = '2.1.0';
+    this.version = '2.1.1';
     this.sounds = {
       white: {
         name: 'White',
@@ -304,9 +304,15 @@ class AmbientApp extends LitElement {
             id="headerLogo"
             alt="Logo"
             src="../assets/AmbientLogo.svg"
-            @click="${e => {
-              this.showVersion = !!!this.showVersion;
+            @click="${() => {
+              this.showVersion = !this.showVersion;
               this.update();
+            }}"
+            @keyup="${e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                this.showVersion = !this.showVersion;
+                this.update();
+              }
             }}"
           />
           <div id="headerText">
