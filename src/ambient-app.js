@@ -124,10 +124,14 @@ class AmbientApp extends LitElement {
       },
     };
     this.initIDB();
-    this.playing = {};
+    this.state = {
+      audioContexts:{},
+      playingSettings:{}
+    }
     this.fetching = {};
     this.setOpusSupport();
     this.wakeLock = null;
+    this.mostRecentPresetExists = false;
   }
 
   initIDB() {
@@ -138,11 +142,57 @@ class AmbientApp extends LitElement {
     }).then(dbo => {
       this.idb = dbo;
     });
+    openDB('presetDB', 1, {
+      upgrade(db) {
+        db.createObjectStore('presets');
+      },
+    }).then(dbo => {
+      this.presetDB = dbo;
+      this.presetDB.get('presets', 'lastPlayed').then(presetData => {
+        if (presetData != null && Object.keys(presetData).length > 0) {
+          this.mostRecentPresetExists = true;
+          this.update();
+        }
+      });
+    });
+  }
+
+  updatePreset(presetKey = 'lastPlayed') {
+    let presetOptions = {};
+    Object.keys(this.state.playingSettings).forEach(soundKey => {
+      if (this.state.playingSettings[soundKey].playing === true) {
+        presetOptions[soundKey] = {
+          volume: this.state.playingSettings[soundKey].volume,
+        };
+      }
+    })
+    this.presetDB.put('presets', presetOptions, presetKey).then(x=>{
+      this.mostRecentPresetExists = true;
+    });
+  }
+  resumeLastPlayed (e) {
+    this.loadPreset();
+  }
+
+  loadPreset(presetKey = 'lastPlayed') {
+    this.presetDB.get('presets', presetKey).then(presetData => {
+      this.stopAll();
+      this.setInputsToMatchPreset(presetData);
+    });
+  }
+  
+  setInputsToMatchPreset(presetData) {
+    Object.keys(presetData).forEach(soundKey => {
+      this.shadowRoot.getElementById(`volumeSlider_${soundKey}`).value =
+        presetData[soundKey].volume;
+      this.playSound(soundKey);
+    });
+    // this.update();
   }
 
   soundToggled(e) {
     const id = e.detail.id.split('_')[1];
-    if (this.playing?.[id]?.playing) {
+    if (this.state.playingSettings?.[id]?.playing) {
       this.stopSound(id);
     } else {
       this.playSound(id);
@@ -150,28 +200,28 @@ class AmbientApp extends LitElement {
   }
 
   stopSound(key) {
-    this.playing[key].source.stop();
-    this.playing[key].playing = false;
-    clearTimeout(this.playing[key].restart);
+    this.state.audioContexts[key].source.stop();
+    this.state.playingSettings[key].playing = false;
+    clearTimeout(this.state.audioContexts[key].restart);
     this.updateStopButton();
   }
 
   restartSound(key) {
-    this.playing[key].source.stop();
-    // this.playing[key].source.start();
+    this.state.audioContexts[key].source.stop();
+    // this.state.audioContexts[key].source.start();
     // this.setRestart(key);
     // this.stopSound(key);
     this.playSound(key);
   }
 
   setRestart(key) {
-    this.playing[key].restart = setTimeout(() => {
+    this.state.audioContexts[key].restart = setTimeout(() => {
       this.restartSound(key);
     }, 240 * 60 * 1000);
   }
 
   updatePlayPauseButton(key) {
-    if (this.playing[key].playing === true) {
+    if (this.state.playingSettings[key].playing === true) {
       this.shadowRoot.getElementById(`playPause_${key}`).play();
     } else {
       this.shadowRoot.getElementById(`playPause_${key}`).pause();
@@ -187,25 +237,28 @@ class AmbientApp extends LitElement {
       this.getSound(key)
         .then(audioData =>
           audioData === null
-            ? this.playing[key].source.buffer
+            ? this.state.audioContexts[key].source.buffer
             : this.audioContext.decodeAudioData(audioData)
         )
         .then(buffer => {
-          this.playing[key] = this.playing[key] || {};
-          this.playing[key].source = this.audioContext.createBufferSource();
-          this.playing[key].source.buffer = buffer;
-          this.playing[key].gainNode = this.audioContext.createGain();
-          this.playing[key].gainNode.gain.value =
-            this.shadowRoot.getElementById(`volumeSlider_${key}`).value / 100;
-          this.playing[key].gainNode.connect(this.audioContext.destination);
-          this.playing[key].source.connect(this.playing[key].gainNode);
-          this.playing[key].source.loop = true;
-          this.playing[key].playing = true;
-          this.playing[key].source.start();
+          const volume = this.shadowRoot.getElementById(`volumeSlider_${key}`).value;
+          this.state.audioContexts[key] = this.state.audioContexts[key] || {};
+          this.state.audioContexts[key].source = this.audioContext.createBufferSource();
+          this.state.audioContexts[key].source.buffer = buffer;
+          this.state.audioContexts[key].gainNode = this.audioContext.createGain();
+          this.state.audioContexts[key].gainNode.gain.value =
+            volume / 100;
+          this.state.audioContexts[key].gainNode.connect(this.audioContext.destination);
+          this.state.audioContexts[key].source.connect(this.state.audioContexts[key].gainNode);
+          this.state.audioContexts[key].source.loop = true;
+          this.state.playingSettings[key] = {};
+          this.state.playingSettings[key].playing = true;
+          this.state.playingSettings[key].volume = volume;
+          this.state.audioContexts[key].source.start();
           this.setRestart(key);
           this.fetching[key] = false;
           this.updatePlayPauseButton(key);
-          this.playing[key].source.onended = () => {
+          this.state.audioContexts[key].source.onended = () => {
             this.updatePlayPauseButton(key);
           };
           this.updateStopButton();
@@ -214,8 +267,9 @@ class AmbientApp extends LitElement {
   }
 
   stopAll() {
-    Object.keys(this.playing).forEach(x => {
-      if (this.playing[x]?.playing) {
+    this.updatePreset();
+    Object.keys(this.state.playingSettings).forEach(x => {
+      if (this.state.playingSettings[x]?.playing) {
         this.stopSound(x);
       }
     });
@@ -229,8 +283,8 @@ class AmbientApp extends LitElement {
 
   checkIfAnyPlaying() {
     let anyPlaying = false;
-    Object.keys(this.playing).forEach(x => {
-      if (this.playing[x]?.playing) {
+    Object.keys(this.state.playingSettings).forEach(x => {
+      if (this.state.playingSettings[x]?.playing) {
         anyPlaying = true;
       }
     });
@@ -256,7 +310,7 @@ class AmbientApp extends LitElement {
 
   getSound(key) {
     return new Promise((resolve, reject) => {
-      if (this.playing[key] == null) {
+      if (this.state.audioContexts[key] == null) {
         this.idb
           .get('sounds', key)
           .then(data => {
@@ -280,8 +334,11 @@ class AmbientApp extends LitElement {
 
   volumeChanged(e) {
     const key = e.target.id.split('_')[1];
-    if (this.playing?.[key]?.playing === true) {
-      this.playing[key].gainNode.gain.value = e.target.value / 100;
+    const volume = e.target.value;
+    if (this.state.playingSettings[key]?.playing === true) {
+      this.state.audioContexts[key].gainNode.gain.value = volume / 100;
+      this.state.playingSettings[key].volume = volume;
+      this.updatePreset();
     }
   }
 
@@ -330,15 +387,15 @@ class AmbientApp extends LitElement {
                   this.soundToggled(e);
                 }}"
                 style="--color:${sound.color}"
-                label="${this.playing?.[x]?.playing
+                label="${this.state.audioContexts?.[x]?.playing
                   ? 'Pause'
                   : 'Play'} ${sound.name}"
               ></play-pause>
               <div class="rightSideGroup">
                 <div>
                   <label for="volumeSlider_${x}"
-                    ><h2 id="${sound.name} label">${sound.name}</h2></label
-                  >
+                    ><h2 id="${sound.name} label">${sound.name}</h2>
+                  </label>
                 </div>
                 <input
                   id="volumeSlider_${x}"
@@ -364,6 +421,18 @@ class AmbientApp extends LitElement {
                     @click="${e => this.stopAll(e)}"
                     style="--paper-button-default-color:#000"
                     >STOP ALL</lit-paper-button
+                  >
+                </div>
+              </div>`
+          : this.mostRecentPresetExists 
+          ? html`<div class="headerSpacer"></div>
+              <div id="stopFooter">
+                <div style="width:auto;max-width:600px;">
+                  <lit-paper-button
+                    id="resumeLastPlayedButton"
+                    @click="${e => this.resumeLastPlayed(e)}"
+                    style="--paper-button-default-color:#000"
+                    >RESUME LAST PLAYED</lit-paper-button
                   >
                 </div>
               </div>`
